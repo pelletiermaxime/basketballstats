@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "turbo run dev:nuxt dev:convex --ui=tui",
+    "dev:nuxt": "nuxt dev --dotenv .env.local",
+    "dev:convex": "convex dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
@@ -14,12 +16,15 @@
     "@iconify-json/lucide": "^1.2.90",
     "@iconify-json/simple-icons": "^1.2.70",
     "@nuxt/ui": "^4.4.0",
+    "better-convex-nuxt": "^0.2.12",
+    "convex": "^1.32.0",
     "nuxt": "^4.3.1",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.1",
     "eslint": "^10.0.0",
+    "turbo": "^2.8.12",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.2.4"
   },

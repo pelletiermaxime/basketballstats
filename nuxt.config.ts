@@ -2,7 +2,8 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    'better-convex-nuxt'
   ],
 
   devtools: {
@@ -24,5 +25,9 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  },
+
+  convex: {
+    url: process.env.CONVEX_URL
   }
 })

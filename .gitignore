@@ -5,6 +5,7 @@
 .nitro
 .cache
 dist
+.turbo
 
 # Node dependencies
 node_modules
@@ -17,6 +18,17 @@ logs
 .DS_Store
 .fleet
 .idea
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Convex
+convex/_generated
+
+# TypeScript
+*.tsbuildinfo
 
 # Local env files
 .env
