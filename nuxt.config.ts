@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
@@ -12,11 +14,19 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  alias: {
+    '@convex': fileURLToPath(new URL('./convex', import.meta.url))
+  },
+
   routeRules: {
-    '/': { prerender: true }
+    '/': { redirect: '/player-stats' }
   },
 
   compatibilityDate: '2025-01-15',
+
+  convex: {
+    url: process.env.CONVEX_URL
+  },
 
   eslint: {
     config: {
@@ -25,9 +35,5 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
-  },
-
-  convex: {
-    url: process.env.CONVEX_URL
   }
 })
