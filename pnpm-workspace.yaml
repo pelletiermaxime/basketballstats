@@ -1,5 +1,1 @@
-ignoredBuiltDependencies:
-  - '@parcel/watcher'
-  - '@tailwindcss/oxide'
-  - unrs-resolver
-  - vue-demi
+
