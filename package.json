@@ -10,21 +10,22 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "prod": "convex deploy --cmd 'pnpm run build'"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.95",
-    "@iconify-json/simple-icons": "^1.2.71",
-    "@nuxt/ui": "^4.5.0",
-    "better-convex-nuxt": "^0.2.12",
+    "@iconify-json/lucide": "^1.2.96",
+    "@iconify-json/simple-icons": "^1.2.73",
+    "@nuxt/ui": "^4.5.1",
+    "better-convex-nuxt": "^0.3.4",
     "convex": "^1.32.0",
     "nuxt": "^4.3.1",
     "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",
-    "eslint": "^10.0.2",
-    "turbo": "^2.8.12",
+    "eslint": "^10.0.3",
+    "turbo": "^2.8.15",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.2.5"
   },
