@@ -24,9 +24,6 @@ logs
 .env.local
 .env.*.local
 
-# Convex
-convex/_generated
-
 # TypeScript
 *.tsbuildinfo
 
