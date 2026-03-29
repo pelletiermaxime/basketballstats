@@ -10,7 +10,6 @@
 
 import type * as playerStats from "../playerStats.js";
 import type * as seed from "../seed.js";
-import type * as teams from "../teams.js";
 
 import type {
   ApiFromModules,
@@ -21,7 +20,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   playerStats: typeof playerStats;
   seed: typeof seed;
-  teams: typeof teams;
 }>;
 
 /**

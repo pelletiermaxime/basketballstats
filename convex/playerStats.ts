@@ -23,105 +23,6 @@ interface PlayerStatsApi {
   free_throw_pct: string
 }
 
-export const getPlayerStatsByYear = query({
-  args: { year: v.number() },
-  handler: async (ctx, args) => {
-    const playerStats = await ctx.db
-      .query('playerStats')
-      .withIndex('year', q => q.eq('year', args.year))
-      .collect()
-    return playerStats
-  }
-})
-
-export const getPlayerStatsByTeam = query({
-  args: { year: v.number(), teamId: v.id('teams') },
-  handler: async (ctx, args) => {
-    const playerStats = await ctx.db
-      .query('playerStats')
-      .withIndex('year_team_id', q =>
-        q.eq('year', args.year).eq('team_id', args.teamId)
-      )
-      .collect()
-    return playerStats
-  }
-})
-
-export const getPlayerStatsWithTeamsByTeam = query({
-  args: { year: v.number(), teamId: v.id('teams') },
-  handler: async (ctx, args) => {
-    const playerStats = await ctx.db
-      .query('playerStats')
-      .withIndex('year_team_id', q =>
-        q.eq('year', args.year).eq('team_id', args.teamId)
-      )
-      .collect()
-
-    const team = await ctx.db.get(args.teamId)
-
-    return playerStats
-      .sort((a, b) => b.points - a.points)
-      .map(stat => ({
-        ...stat,
-        team
-      }))
-  }
-})
-
-export const getPlayerStatsWithTeamsByTeamSorted = query({
-  args: {
-    year: v.number(),
-    teamId: v.id('teams'),
-    sortBy: v.union(
-      v.literal('gamesPlayed'),
-      v.literal('points'),
-      v.literal('rebounds'),
-      v.literal('assists'),
-      v.literal('steals'),
-      v.literal('blocks'),
-      v.literal('minutes')
-    ),
-    sortOrder: v.optional(v.union(v.literal('asc'), v.literal('desc')))
-  },
-  handler: async (ctx, args) => {
-    const playerStats = await ctx.db
-      .query('playerStats')
-      .withIndex('year_team_id', q =>
-        q.eq('year', args.year).eq('team_id', args.teamId)
-      )
-      .collect()
-
-    const order = args.sortOrder ?? 'desc'
-    const sortKey = args.sortBy
-
-    const sortedStats = playerStats.sort((a, b) => {
-      const aValue = a[sortKey]
-      const bValue = b[sortKey]
-      return order === 'asc' ? aValue - bValue : bValue - aValue
-    })
-
-    const team = await ctx.db.get(args.teamId)
-
-    return sortedStats.map(stat => ({
-      ...stat,
-      team
-    }))
-  }
-})
-
-export const getPlayerStatsByPlayerId = query({
-  args: { year: v.number(), playerId: v.string() },
-  handler: async (ctx, args) => {
-    const playerStats = await ctx.db
-      .query('playerStats')
-      .withIndex('year_playerId', q =>
-        q.eq('year', args.year).eq('playerId', args.playerId)
-      )
-      .first()
-    return playerStats
-  }
-})
-
 async function fetchPlayerStatsWithTeams(ctx: QueryCtx, year: number, limit?: number) {
   const query = ctx.db
     .query('playerStats')
@@ -142,55 +43,10 @@ async function fetchPlayerStatsWithTeams(ctx: QueryCtx, year: number, limit?: nu
   })
 }
 
-export const getPlayerStatsWithTeams = query({
-  args: { year: v.number() },
-  handler: async (ctx, args) => {
-    return fetchPlayerStatsWithTeams(ctx, args.year)
-  }
-})
-
 export const getTopPlayerStatsWithTeams = query({
   args: { year: v.number(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     return fetchPlayerStatsWithTeams(ctx, args.year, args.limit ?? 100)
-  }
-})
-
-export const getPlayerStatsWithTeamsSorted = query({
-  args: {
-    year: v.number(),
-    sortBy: v.union(
-      v.literal('gamesPlayed'),
-      v.literal('points'),
-      v.literal('rebounds'),
-      v.literal('assists'),
-      v.literal('steals'),
-      v.literal('blocks')
-    ),
-    sortOrder: v.optional(v.union(v.literal('asc'), v.literal('desc'))),
-    limit: v.optional(v.number())
-  },
-  handler: async (ctx, args) => {
-    const order = args.sortOrder ?? 'desc'
-    const limit = args.limit ?? 100
-
-    const query = ctx.db
-      .query('playerStats')
-      .withIndex(`year_${args.sortBy}`, q => q.eq('year', args.year))
-      .order(order)
-
-    const playerStats = await query.take(limit)
-
-    const teams = await ctx.db.query('teams').collect()
-    const teamMap = new Map(teams.map(t => [t._id.toString(), t]))
-
-    return playerStats.map((stat) => {
-      const team = teamMap.get(stat.team_id.toString())
-      return {
-        ...stat,
-        team
-      }
-    })
   }
 })
 

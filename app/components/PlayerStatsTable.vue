@@ -26,7 +26,7 @@ interface PlayerStat {
   }
 }
 
-const _props = defineProps<{
+defineProps<{
   stats: PlayerStat[]
 }>()
 
