@@ -61,7 +61,7 @@ function getCellValue(stat: PlayerStat, column: Column): string {
     return column.format(value)
   }
   if (typeof value === 'number') {
-    return value.toFixed(1)
+    return Number.isInteger(value) ? value.toString() : value.toFixed(1)
   }
   return String(value || '')
 }

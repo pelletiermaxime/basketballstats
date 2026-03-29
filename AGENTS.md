@@ -84,7 +84,7 @@ const { data: playerStats } = await useConvexQuery(
 
 ### Error Handling
 
-- Convex errors are handled automatically by `useQuery()`
+- Convex errors are handled automatically by `useConvexQuery()`
 - Use try/catch for async operations when needed
 - Use Nuxt's `createError()` for fatal errors:
 
@@ -127,7 +127,7 @@ export const getTeams = query({
 
 ### File Organization
 
-```
+```text
 ├── app/
 │   ├── app.vue              # App entry point
 │   ├── components/          # Vue components (auto-imported)
