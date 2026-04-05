@@ -1,151 +1,88 @@
-# AGENTS.md
+<!--VITE PLUS START-->
 
-This file contains guidelines for agentic coding agents working in this repository.
+# Using Vite+, the Unified Toolchain for the Web
 
-## Project Overview
+This project is using Vite+, a unified toolchain built on top of Vite, Rolldown, Vitest, tsdown, Oxlint, Oxfmt, and Vite Task. Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite, but it invokes Vite through `vp dev` and `vp build`.
 
-Basketball Stats - A Nuxt 4 application displaying NBA player statistics. Built with Vue 3, TypeScript, Tailwind CSS v4, Nuxt UI v4, and Convex backend using better-convex-nuxt.
+## Vite+ Workflow
 
-## Build/Lint/Test Commands
+`vp` is a global binary that handles the full development lifecycle. Run `vp help` to print a list of commands and `vp <command> --help` for information about a specific command.
 
-```bash
-# Development
-pnpm run dev              # Start dev server [Please never do this as I already run it manually]
+### Start
 
-# Build & Preview
-pnpm run build            # Build for production
-pnpm run preview          # Preview production build
+- create - Create a new project from a template
+- migrate - Migrate an existing project to Vite+
+- config - Configure hooks and agent integration
+- staged - Run linters on staged files
+- install (`i`) - Install dependencies
+- env - Manage Node.js versions
 
-# Linting
-pnpm run lint             # Run ESLint on all files
-pnpm run typecheck        # Run TypeScript type checking (via nuxt typecheck)
+### Develop
+
+- dev - Run the development server
+- check - Run format, lint, and TypeScript type checks
+- lint - Lint code
+- fmt - Format code
+- test - Run tests
+
+### Execute
+
+- run - Run monorepo tasks
+- exec - Execute a command from local `node_modules/.bin`
+- dlx - Execute a package binary without installing it as a dependency
+- cache - Manage the task cache
+
+### Build
+
+- build - Build for production
+- pack - Build libraries
+- preview - Preview production build
+
+### Manage Dependencies
+
+Vite+ automatically detects and wraps the underlying package manager such as pnpm, npm, or Yarn through the `packageManager` field in `package.json` or package manager-specific lockfiles.
+
+- add - Add packages to dependencies
+- remove (`rm`, `un`, `uninstall`) - Remove packages from dependencies
+- update (`up`) - Update packages to latest versions
+- dedupe - Deduplicate dependencies
+- outdated - Check for outdated packages
+- list (`ls`) - List installed packages
+- why (`explain`) - Show why a package is installed
+- info (`view`, `show`) - View package information from the registry
+- link (`ln`) / unlink - Manage local package links
+- pm - Forward a command to the package manager
+
+### Maintain
+
+- upgrade - Update `vp` itself to the latest version
+
+These commands map to their corresponding tools. For example, `vp dev --port 3000` runs Vite's dev server and works the same as Vite. `vp test` runs JavaScript tests through the bundled Vitest. The version of all tools can be checked using `vp --version`. This is useful when researching documentation, features, and bugs.
+
+## Common Pitfalls
+
+- **Using the package manager directly:** Do not use pnpm, npm, or Yarn directly. Vite+ can handle all package manager operations.
+- **Always use Vite commands to run tools:** Don't attempt to run `vp vitest` or `vp oxlint`. They do not exist. Use `vp test` and `vp lint` instead.
+- **Running scripts:** Vite+ built-in commands (`vp dev`, `vp build`, `vp test`, etc.) always run the Vite+ built-in tool, not any `package.json` script of the same name. To run a custom script that shares a name with a built-in command, use `vp run <script>`. For example, if you have a custom `dev` script that runs multiple services concurrently, run it with `vp run dev`, not `vp dev` (which always starts Vite's dev server).
+- **Do not install Vitest, Oxlint, Oxfmt, or tsdown directly:** Vite+ wraps these tools. They must not be installed directly. You cannot upgrade these tools by installing their latest versions. Always use Vite+ commands.
+- **Use Vite+ wrappers for one-off binaries:** Use `vp dlx` instead of package-manager-specific `dlx`/`npx` commands.
+- **Import JavaScript modules from `vite-plus`:** Instead of importing from `vite` or `vitest`, all modules should be imported from the project's `vite-plus` dependency. For example, `import { defineConfig } from 'vite-plus';` or `import { expect, test, vi } from 'vite-plus/test';`. You must not install `vitest` to import test utilities.
+- **Type-Aware Linting:** There is no need to install `oxlint-tsgolint`, `vp lint --type-aware` works out of the box.
+
+## CI Integration
+
+For GitHub Actions, consider using [`voidzero-dev/setup-vp`](https://github.com/voidzero-dev/setup-vp) to replace separate `actions/setup-node`, package-manager setup, cache, and install steps with a single action.
+
+```yaml
+- uses: voidzero-dev/setup-vp@v1
+  with:
+    cache: true
+- run: vp check
+- run: vp test
 ```
 
-## Code Style Guidelines
+## Review Checklist for Agents
 
-### General Principles
-
-- No comments unless explaining complex business logic
-- Avoid code explanation summaries unless requested
-- Keep responses concise on command line
-- Never commit changes unless explicitly asked
-
-### TypeScript
-
-- Use TypeScript interfaces for all type definitions
-- Prefer explicit types over `any`
-- Use `Record<K, T>` for dictionary types
-- Use optional properties with `?` when appropriate
-- Define props in Vue components using TypeScript:
-
-```typescript
-defineProps<{
-  stats: PlayerStat[]
-}>()
-```
-
-### Naming Conventions
-
-- **Files**: PascalCase for Vue components (`PlayerStatsTable.vue`), camelCase for TypeScript files
-- **Variables/functions**: camelCase (`getTeams`, `playerStats`)
-- **Types/Interfaces**: PascalCase (`PlayerStat`, `Team`)
-- **Constants**: SCREAMING_SNAKE_CASE for config values
-- **Vue components**: Auto-imported by directory structure, use descriptive names
-
-### Vue Components
-
-- Use `<script setup lang="ts">` for all components
-- Use Nuxt auto-imports for composables and utilities
-- Define page metadata with `definePageMeta()`:
-
-```typescript
-definePageMeta({
-  title: 'Player Stats'
-})
-```
-
-- Use `useConvexQuery()` from `better-convex-nuxt` for data fetching in pages:
-
-```typescript
-import { api } from "@convex/_generated/api";
-
-const { data: playerStats } = await useConvexQuery(
-  api.playerStats.getTopPlayerStatsWithTeams,
-  { year: 2026, limit: 100 }
-)
-```
-
-### Imports
-
-- Use `~` alias for imports from `app/` directory (`~/components/PlayerStatsTable`)
-- Use `@convex` alias for imports from `convex/` directory (`@convex/_generated/api`)
-- Use Nuxt auto-imports (no need to import `ref`, `computed`, etc.)
-- Import types explicitly with `import type { PlayerStat } from '~/types/players'`
-
-### Error Handling
-
-- Convex errors are handled automatically by `useConvexQuery()`
-- Use try/catch for async operations when needed
-- Use Nuxt's `createError()` for fatal errors:
-
-```typescript
-throw createError({
-  statusCode: 500,
-  statusMessage: 'Failed to fetch data'
-})
-```
-
-### Convex Backend
-
-- Uses `better-convex-nuxt` module for Vue/Nuxt integration
-- Place functions in `convex/` directory
-- Define schema in `convex/schema.ts` with indexes on frequently queried fields
-- Export query/mutation/action functions using `query({})`, `mutation({})`, `action({})` from `./_generated/server`
-- Access database via `ctx.db`
-- Use `v` validator from `convex/values` for argument validation
-- Don't manually run `convex dev` as it is already running
-
-Example:
-```typescript
-import { query } from "./_generated/server";
-
-export const getTeams = query({
-  args: {},
-  handler: async (ctx) => {
-    const teams = await ctx.db.query("teams").collect();
-    return teams;
-  },
-});
-```
-
-### Styling
-
-- Use Tailwind CSS v4 utility classes in templates
-- Use Nuxt UI v4 components (`UButton`, `UTable`, `UPageHeader`, etc.)
-- Use Tailwind-compatible classes
-- Avoid custom CSS unless necessary
-
-### File Organization
-
-```text
-├── app/
-│   ├── app.vue              # App entry point
-│   ├── components/          # Vue components (auto-imported)
-│   ├── pages/               # Route pages (auto-routed)
-│   └── assets/css/          # Styles
-├── convex/                  # Convex backend functions
-│   ├── schema.ts            # Database schema
-│   ├── playerStats.ts       # Player stats functions
-│   ├── teams.ts             # Teams functions
-│   └── seed.ts              # Seed data
-├── public/                  # Static assets
-├── nuxt.config.ts           # Nuxt configuration
-└── package.json             # Dependencies
-```
-
-### Before Submitting
-
-1. Run `pnpm run lint` to check code quality
-2. Run `pnpm run typecheck` to verify TypeScript
-
-
+- [ ] Run `vp install` after pulling remote changes and before getting started.
+- [ ] Run `vp check` and `vp test` to validate changes.
+<!--VITE PLUS END-->
