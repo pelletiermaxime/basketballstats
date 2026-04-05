@@ -1,4 +1,4 @@
-import { query, internalAction, internalMutation } from './_generated/server'
+import { query, action, internalMutation } from './_generated/server'
 import type { QueryCtx } from './_generated/server'
 import { internal } from './_generated/api'
 import { v } from 'convex/values'
@@ -24,21 +24,21 @@ interface PlayerStatsApi {
 }
 
 async function fetchPlayerStatsWithTeams(ctx: QueryCtx, year: number, limit?: number) {
-  const query = ctx.db
+  const statsQuery = ctx.db
     .query('playerStats')
-    .withIndex('year_points', q => q.eq('year', year))
+    .withIndex('year_points', (q) => q.eq('year', year))
     .order('desc')
 
-  const playerStats = limit ? await query.take(limit) : await query.collect()
+  const playerStats = limit ? await statsQuery.take(limit) : await statsQuery.collect()
 
   const teams = await ctx.db.query('teams').collect()
-  const teamMap = new Map(teams.map(t => [t._id.toString(), t]))
+  const teamMap = new Map(teams.map((t) => [t._id.toString(), t]))
 
   return playerStats.map((stat) => {
     const team = teamMap.get(stat.team_id.toString())
     return {
       ...stat,
-      team
+      team,
     }
   })
 }
@@ -47,15 +47,13 @@ export const getTopPlayerStatsWithTeams = query({
   args: { year: v.number(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     return fetchPlayerStatsWithTeams(ctx, args.year, args.limit ?? 100)
-  }
+  },
 })
 
-export const syncPlayerStatsAction = internalAction({
+export const syncPlayerStatsAction = action({
   args: { year: v.number() },
   handler: async (ctx, args) => {
-    const url = 'https://stats-api.sportsnet.ca/web_player_table?league=nba&season_year=2025&season_type=reg'
-
-    console.log('Fetching NBA player stats...')
+    const url = `https://stats-api.sportsnet.ca/web_player_table?league=nba&season_year=${args.year}&season_type=reg`
 
     const response = await fetch(url)
 
@@ -66,37 +64,33 @@ export const syncPlayerStatsAction = internalAction({
     const data = await response.json()
     const apiPlayerStats: PlayerStatsApi[] = data.data?.player_stats?.players || []
 
-    console.log(`Fetched ${apiPlayerStats.length} player stats`)
-
-    const playerStats = apiPlayerStats.map((s) => {
-      return {
-        playerId: s.id,
-        firstName: s.first_name,
-        lastName: s.last_name,
-        fullName: s.display_name,
-        teamAbbreviation: s.team_alias,
-        position: s.position || '',
-        gamesPlayed: s.games_played || 0,
-        minutes: s.minutes_average || 0,
-        points: s.points_per_game || 0,
-        rebounds: s.rebounds_per_game || 0,
-        assists: s.assists_per_game || 0,
-        steals: s.steals_per_game || 0,
-        blocks: s.blocks_per_game || 0,
-        turnovers: s.turnovers_per_game || 0,
-        fieldGoalPct: parseFloat(s.field_goals_pct || '0') / 100,
-        threePointPct: parseFloat(s.three_point_goals_pct || '0') / 100,
-        freeThrowPct: parseFloat(s.free_throw_pct || '0') / 100
-      }
-    })
+    const playerStats = apiPlayerStats.map((s) => ({
+      playerId: s.id,
+      firstName: s.first_name,
+      lastName: s.last_name,
+      fullName: s.display_name,
+      teamAbbreviation: s.team_alias,
+      position: s.position || '',
+      gamesPlayed: s.games_played || 0,
+      minutes: s.minutes_average || 0,
+      points: s.points_per_game || 0,
+      rebounds: s.rebounds_per_game || 0,
+      assists: s.assists_per_game || 0,
+      steals: s.steals_per_game || 0,
+      blocks: s.blocks_per_game || 0,
+      turnovers: s.turnovers_per_game || 0,
+      fieldGoalPct: Number.parseFloat(s.field_goals_pct || '0') / 100,
+      threePointPct: Number.parseFloat(s.three_point_goals_pct || '0') / 100,
+      freeThrowPct: Number.parseFloat(s.free_throw_pct || '0') / 100,
+    }))
 
     await ctx.runMutation(internal.playerStats.syncPlayerStats, {
       year: args.year,
-      playerStats
+      playerStats,
     })
 
     return { count: playerStats.length }
-  }
+  },
 })
 
 export const syncPlayerStats = internalMutation({
@@ -120,23 +114,19 @@ export const syncPlayerStats = internalMutation({
         turnovers: v.number(),
         fieldGoalPct: v.number(),
         threePointPct: v.number(),
-        freeThrowPct: v.number()
-      })
-    )
+        freeThrowPct: v.number(),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
-    // Get all teams and create lookup maps
     const allTeams = await ctx.db.query('teams').collect()
-    const teamMapByAbbrev = new Map(allTeams.map(t => [t.abbreviation, t._id]))
+    const teamMapByAbbrev = new Map(allTeams.map((t) => [t.abbreviation, t._id]))
 
-    // Get existing player stats for this year
     const existingPlayerStats = await ctx.db
       .query('playerStats')
-      .withIndex('year', q => q.eq('year', args.year))
+      .withIndex('year', (q) => q.eq('year', args.year))
       .collect()
-    const existingMap = new Map(
-      existingPlayerStats.map(s => [s.playerId, s._id])
-    )
+    const existingMap = new Map(existingPlayerStats.map((s) => [s.playerId, s._id]))
 
     let inserted = 0
     let updated = 0
@@ -145,7 +135,6 @@ export const syncPlayerStats = internalMutation({
       const teamId = teamMapByAbbrev.get(playerStat.teamAbbreviation)
 
       if (!teamId) {
-        console.log(`Team not found: ${playerStat.teamAbbreviation} for ${playerStat.fullName}`)
         continue
       }
 
@@ -169,7 +158,7 @@ export const syncPlayerStats = internalMutation({
         turnovers: playerStat.turnovers,
         fieldGoalPct: playerStat.fieldGoalPct,
         threePointPct: playerStat.threePointPct,
-        freeThrowPct: playerStat.freeThrowPct
+        freeThrowPct: playerStat.freeThrowPct,
       }
 
       if (existingId) {
@@ -181,7 +170,6 @@ export const syncPlayerStats = internalMutation({
       }
     }
 
-    console.log(`Sync complete: ${inserted} inserted, ${updated} updated`)
     return { inserted, updated }
-  }
+  },
 })

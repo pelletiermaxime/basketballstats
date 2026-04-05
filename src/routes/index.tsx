@@ -1,47 +1,147 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useState } from 'react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { convexQuery } from '@convex-dev/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useAction } from 'convex/react'
+import { api } from '../../convex/_generated/api'
+import PlayerStatsTable from '../components/PlayerStatsTable'
+import type { SortingState } from '@tanstack/react-table'
 
-export const Route = createFileRoute("/")({ component: Home });
+const CURRENT_YEAR = 2025
+const YEAR_OPTIONS = [2025, 2024, 2023]
+
+const PLAYER_LIMIT = 100
+
+// SSR Loader - fetches data on the server
+export const Route = createFileRoute('/')({
+  component: Home,
+  head: () => ({
+    meta: [{ title: 'NBA Player Statistics | Basketball Stats' }],
+  }),
+  loader: async () => {
+    // Return the year for SSR - data will be fetched via useSuspenseQuery
+    return { year: CURRENT_YEAR }
+  },
+  staleTime: 60_000,
+})
 
 function Home() {
+  const navigate = useNavigate()
+  const loaderData = Route.useLoaderData()
+  const [selectedYear, setSelectedYear] = useState(loaderData.year)
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'points', desc: true }])
+  const [isSyncing, setIsSyncing] = useState(false)
+
+  // Use suspense query for SSR - this will fetch data and support SSR hydration
+  const { data: playerStats } = useSuspenseQuery(
+    convexQuery(api.playerStats.getTopPlayerStatsWithTeams, {
+      year: selectedYear,
+      limit: PLAYER_LIMIT,
+    }),
+  )
+
+  const syncAction = useAction(api.playerStats.syncPlayerStatsAction)
+
+  const handleYearChange = (year: number) => {
+    setSelectedYear(year)
+    void navigate({
+      to: '/',
+      search: { year },
+    })
+  }
+
+  const handleSync = async () => {
+    setIsSyncing(true)
+    try {
+      await syncAction({ year: selectedYear })
+    } catch (err) {
+      console.error('Sync failed:', err)
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <section className="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
-        <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(79,184,178,0.32),transparent_66%)]" />
-        <div className="pointer-events-none absolute -bottom-20 -right-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(47,106,74,0.18),transparent_66%)]" />
-        <h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold tracking-tight text-[var(--sea-ink)] sm:text-6xl">
-          Basketball Stats
-        </h1>
-        <p className="mb-8 max-w-2xl text-base text-[var(--sea-ink-soft)] sm:text-lg">
-          Track and analyze basketball statistics with ease. A modern stats tracking application
-          built with TanStack and Vite Plus.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <a
-            href="/about"
-            className="rounded-full border border-[rgba(50,143,151,0.3)] bg-[rgba(79,184,178,0.14)] px-5 py-2.5 text-sm font-semibold text-[var(--lagoon-deep)] no-underline transition hover:-translate-y-0.5 hover:bg-[rgba(79,184,178,0.24)]"
-          >
-            About
-          </a>
+    <main className="page-wrap px-4 pb-8 pt-8">
+      <section className="island-shell rise-in p-6 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="island-kicker mb-1">NBA Statistics</p>
+            <h1 className="text-2xl font-bold text-[var(--ink)]">
+              Top {PLAYER_LIMIT} Player Statistics
+            </h1>
+            <p className="text-sm text-[var(--ink-soft)] mt-1">
+              Per-game averages for the {selectedYear}-{selectedYear + 1} season
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <select
+              value={selectedYear}
+              onChange={(e) => handleYearChange(Number(e.target.value))}
+              className="select"
+            >
+              {YEAR_OPTIONS.map((year) => (
+                <option key={year} value={year}>
+                  {year}-{year + 1} Season
+                </option>
+              ))}
+            </select>
+
+            {import.meta.env.DEV && (
+              <button onClick={handleSync} disabled={isSyncing} className="btn btn-primary">
+                {isSyncing ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Syncing...
+                  </>
+                ) : (
+                  'Sync Data'
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </section>
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          ["Player Stats", "Track individual player performance metrics."],
-          ["Team Analytics", "Analyze team statistics and trends."],
-          ["Game Tracking", "Record and review game-by-game data."],
-          ["Real-time Updates", "See stats update as games progress."],
-        ].map(([title, desc], index) => (
-          <article
-            key={title}
-            className="island-shell feature-card rise-in rounded-2xl p-5"
-            style={{ animationDelay: `${index * 90 + 80}ms` }}
-          >
-            <h2 className="mb-2 text-base font-semibold text-[var(--sea-ink)]">{title}</h2>
-            <p className="m-0 text-sm text-[var(--sea-ink-soft)]">{desc}</p>
-          </article>
-        ))}
+      <section className="rise-in" style={{ animationDelay: '100ms' }}>
+        {playerStats.length === 0 ? (
+          <div className="island-shell p-12 text-center">
+            <div className="text-5xl mb-4">🏀</div>
+            <h3 className="text-lg font-semibold text-[var(--ink)] mb-2">No data available</h3>
+            <p className="text-[var(--ink-soft)] mb-4">
+              No player statistics found for the {selectedYear}-{selectedYear + 1} season.
+            </p>
+            {import.meta.env.DEV && (
+              <button onClick={handleSync} disabled={isSyncing} className="btn btn-primary">
+                {isSyncing ? 'Syncing...' : 'Sync Data Now'}
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-[var(--ink-muted)] mb-2">
+              Showing top {playerStats.length} players by points per game
+            </p>
+            <PlayerStatsTable stats={playerStats} sorting={sorting} onSortingChange={setSorting} />
+          </>
+        )}
       </section>
     </main>
-  );
+  )
 }
