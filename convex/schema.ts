@@ -8,7 +8,7 @@ export default defineSchema({
     abbreviation: v.string(),
     conference: v.string(),
     division: v.string(),
-    nbaApiId: v.number()
+    nbaApiId: v.number(),
   })
     .index('abbreviation', ['abbreviation'])
     .index('conference', ['conference'])
@@ -22,7 +22,6 @@ export default defineSchema({
     team_id: v.id('teams'),
     position: v.string(),
     year: v.number(),
-    // Raw stats from API (all per-game)
     gamesPlayed: v.number(),
     minutes: v.number(),
     points: v.number(),
@@ -33,7 +32,7 @@ export default defineSchema({
     turnovers: v.number(),
     fieldGoalPct: v.number(),
     threePointPct: v.number(),
-    freeThrowPct: v.number()
+    freeThrowPct: v.number(),
   })
     .index('playerId', ['playerId'])
     .index('year', ['year'])
@@ -44,5 +43,5 @@ export default defineSchema({
     .index('year_rebounds', ['year', 'rebounds'])
     .index('year_assists', ['year', 'assists'])
     .index('year_steals', ['year', 'steals'])
-    .index('year_blocks', ['year', 'blocks'])
+    .index('year_blocks', ['year', 'blocks']),
 })

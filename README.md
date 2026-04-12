@@ -1,60 +1,111 @@
-# Nuxt Starter Template
+# Basketball Stats
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+A modern basketball statistics tracking application built with TanStack Router, Vite Plus, and Convex.
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+## Features
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+- Player statistics tracking
+- Team analytics
+- Game-by-game data recording
+- Real-time updates via Convex
+- Dark/light theme support
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png" width="830" height="466">
-  </picture>
-</a>
+## Getting Started
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
+### Prerequisites
 
-## Quick Start
+- Node.js (managed via Vite Plus)
+- pnpm
 
-```bash [Terminal]
-npm create nuxt@latest -- -t github:nuxt-ui-templates/starter
-```
+### Installation
 
-## Deploy your own
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
-
-## Setup
-
-Make sure to install the dependencies:
+Install dependencies using Vite Plus:
 
 ```bash
-pnpm install
+vp install
 ```
 
-## Development Server
+### Development
 
-Start the development server on `http://localhost:3000`:
+Start the development server:
 
 ```bash
-pnpm dev
+vp dev
 ```
 
-## Production
+The app will be available at `http://localhost:3000`.
 
-Build the application for production:
+### Building
+
+Build for production:
 
 ```bash
-pnpm build
+vp build
 ```
 
-Locally preview production build:
+Preview the production build:
 
 ```bash
-pnpm preview
+vp preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+### Testing
+
+Run tests:
+
+```bash
+vp test
+```
+
+### Code Quality
+
+Run linting, formatting, and type checks:
+
+```bash
+vp check
+```
+
+## Technologies
+
+- **Vite Plus** - Unified toolchain for development, building, and testing
+- **TanStack Router** - Type-safe routing with file-based routes
+- **TanStack Start** - Full-stack React framework
+- **Convex** - Real-time backend with reactive database
+- **Tailwind CSS** - Utility-first CSS framework
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env.local` file with:
+
+```env
+VITE_CONVEX_URL=your_convex_url
+CONVEX_DEPLOYMENT=your_convex_deployment
+```
+
+### Convex
+
+To start the Convex development server:
+
+```bash
+vp dlx convex dev
+```
+
+## Deployment
+
+This project is configured for Vercel deployment:
+
+```bash
+# Deploy to production
+pnpm run deploy
+
+# Or use vercel CLI directly
+vercel --prod
+```
+
+The app will be built automatically on Vercel's infrastructure. Make sure to set up your environment variables (Convex URL, etc.) in the Vercel dashboard.
+
+## License
+
+MIT

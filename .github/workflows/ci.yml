@@ -13,22 +13,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Install node
-        uses: actions/setup-node@v6
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
         with:
           node-version: ${{ matrix.node }}
-          cache: pnpm
+          cache: true
 
       - name: Install dependencies
-        run: pnpm install
+        run: vp install
 
-      - name: Lint
-        run: pnpm run lint
+      - name: Check (lint + format + typecheck)
+        run: vp check
 
-      - name: Typecheck
-        run: pnpm run typecheck
+      - name: Test
+        run: vp test --passWithNoTests
