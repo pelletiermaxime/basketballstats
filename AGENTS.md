@@ -19,6 +19,8 @@ This project is using Vite+, a unified toolchain built on top of Vite, Rolldown,
 
 ### Develop
 
+**Note:** This project uses a custom `dev` script that runs both Vite and Convex concurrently. Use `vp run dev` to start development, not `vp dev`.
+
 - dev - Run the development server
 - check - Run format, lint, and TypeScript type checks
 - lint - Lint code
@@ -93,6 +95,6 @@ This project uses [Convex](https://convex.dev) as its backend.
 
 When working on Convex code, **always read `convex/_generated/ai/guidelines.md` first** for important guidelines on how to correctly use Convex APIs and patterns. The file contains rules that override what you may have learned about Convex from training data.
 
-Convex agent skills for common tasks can be installed by running `npx convex ai-files install`.
+Convex agent skills for common tasks can be installed by running `vp dlx convex ai-files install`.
 
 <!-- convex-ai-end -->

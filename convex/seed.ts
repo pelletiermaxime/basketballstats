@@ -1,6 +1,15 @@
 import { internalMutation } from './_generated/server'
 
-const nbaTeams = [
+interface NbaTeamSeed {
+  city: string
+  name: string
+  abbreviation: string
+  conference: 'East' | 'West'
+  division: string
+  nbaApiId: number
+}
+
+const nbaTeams: NbaTeamSeed[] = [
   {
     city: 'Atlanta',
     name: 'Hawks',

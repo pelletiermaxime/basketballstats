@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { convexQuery } from '@convex-dev/react-query'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useAction } from 'convex/react'
-import { api } from '../../convex/_generated/api'
+import { api } from '@convex/_generated/api'
 import PlayerStatsTable from '../components/PlayerStatsTable'
 import type { SortingState } from '@tanstack/react-table'
 

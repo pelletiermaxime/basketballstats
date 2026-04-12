@@ -18,7 +18,7 @@ Use this when the app already uses Auth0 or the user wants Auth0 specifically.
 6. If they agree, install the Auth0 CLI and do as much of the Auth0 app setup as possible through the CLI
 7. If they do not want the CLI path, use the Auth0 dashboard path instead
 8. Complete the relevant Auth0 frontend quickstart if the app does not already have Auth0 wired up
-9. Configure `convex/auth.config.ts` with the Auth0 domain and client ID
+9. Configure `convex/auth.config.ts` with the Auth0 domain and `applicationID` (set to the Auth0 Client ID)
 10. Set environment variables for local and production environments
 11. Wrap the app with `Auth0Provider` and `ConvexProviderWithAuth0`
 12. Gate Convex-backed UI with Convex auth state
@@ -38,7 +38,7 @@ Use this when the app already uses Auth0 or the user wants Auth0 specifically.
 ## Key Setup Areas
 
 - install the Auth0 SDK for the app's framework
-- configure `convex/auth.config.ts` with the Auth0 domain and client ID
+- configure `convex/auth.config.ts` with the Auth0 domain and `applicationID` (the Auth0 Client ID)
 - set environment variables for local and production environments
 - wrap the app with `Auth0Provider` and `ConvexProviderWithAuth0`
 - use Convex auth state when gating Convex-backed UI
@@ -61,9 +61,9 @@ Use this when the app already uses Auth0 or the user wants Auth0 specifically.
 3. If yes, install Auth0 CLI and have the user authenticate it with `auth0 login`
 4. Use `auth0 apps create` with SPA settings, callback URL, logout URL, and web origins if creating a new app
 5. If not using the CLI path, complete the relevant Auth0 frontend quickstart and create the Auth0 app in the dashboard
-6. Get the Auth0 domain and client ID from the CLI output or the Auth0 dashboard
+6. Get the Auth0 domain and client ID from the CLI output or the Auth0 dashboard; use the client ID as the `applicationID` in convex/auth.config.ts
 7. Install the Auth0 SDK for the app's framework
-8. Create or update `convex/auth.config.ts` with the Auth0 domain and client ID
+8. Create or update `convex/auth.config.ts` with the Auth0 domain and `applicationID` (set to the Auth0 Client ID)
 9. Set frontend and backend environment variables
 10. Wrap the app in `Auth0Provider`
 11. Replace plain `ConvexProvider` wiring with `ConvexProviderWithAuth0`
