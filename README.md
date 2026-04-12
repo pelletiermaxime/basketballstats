@@ -94,11 +94,17 @@ vp dlx convex dev
 
 ## Deployment
 
-This project is configured for Cloudflare deployment:
+This project is configured for Vercel deployment:
 
 ```bash
-vp build && wrangler deploy
+# Deploy to production
+pnpm run deploy
+
+# Or use vercel CLI directly
+vercel --prod
 ```
+
+The app will be built automatically on Vercel's infrastructure. Make sure to set up your environment variables (Convex URL, etc.) in the Vercel dashboard.
 
 ## License
 

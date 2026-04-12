@@ -1,0 +1,7 @@
+{
+  "buildCommand": "vp build",
+  "outputDirectory": "dist",
+  "framework": null,
+  "installCommand": "pnpm install",
+  "regions": ["iad1"]
+}
