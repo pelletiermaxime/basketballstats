@@ -1,16 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "dist/server/server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/dist/server/server.js"
-    }
-  ],
-  "outputDirectory": "dist/client"
+  "buildCommand": "vp build",
+  "outputDirectory": ".output/public",
+  "framework": null
 }
