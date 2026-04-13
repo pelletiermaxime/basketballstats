@@ -19,8 +19,6 @@ This project is using Vite+, a unified toolchain built on top of Vite, Rolldown,
 
 ### Develop
 
-**Note:** This project uses a custom `dev` script that runs both Vite and Convex concurrently. Use `vp run dev` to start development, not `vp dev`.
-
 - dev - Run the development server
 - check - Run format, lint, and TypeScript type checks
 - lint - Lint code
