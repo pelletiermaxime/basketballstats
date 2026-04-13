@@ -28,7 +28,7 @@
     "@tanstack/router-plugin": "^1.167.12",
     "convex": "^1.34.1",
     "lucide-react": "^0.577.0",
-    "nitro": "3.0.260311-beta",
+    "nitro": "^3.0.260311-beta",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwindcss": "^4.2.2"

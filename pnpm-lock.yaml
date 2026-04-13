@@ -49,7 +49,7 @@ importers:
         specifier: ^0.577.0
         version: 0.577.0(react@19.2.4)
       nitro:
-        specifier: 3.0.260311-beta
+        specifier: ^3.0.260311-beta
         version: 3.0.260311-beta(@voidzero-dev/vite-plus-core@0.1.16(@types/node@22.19.17)(jiti@2.6.1)(tsx@4.21.0)(typescript@5.9.3))(chokidar@4.0.0)(jiti@2.6.1)(lru-cache@11.2.7)
       react:
         specifier: ^19.2.4
