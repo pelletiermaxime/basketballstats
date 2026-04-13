@@ -2,6 +2,8 @@
 
 A modern basketball statistics tracking application built with TanStack Router, Vite Plus, and Convex.
 
+**Live Demo:** [https://basketballstats-neon.vercel.app](https://basketballstats-neon.vercel.app)
+
 ## Features
 
 - Player statistics tracking
