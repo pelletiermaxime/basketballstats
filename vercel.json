@@ -3,8 +3,5 @@
   "outputDirectory": "dist",
   "framework": null,
   "installCommand": "pnpm install",
-  "regions": ["iad1"],
-  "engines": {
-    "node": "22.x"
-  }
+  "regions": ["iad1"]
 }
