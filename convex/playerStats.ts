@@ -1,4 +1,4 @@
-import { query, action, internalMutation } from './_generated/server'
+import { query, action, internalAction, internalMutation } from './_generated/server'
 import type { QueryCtx } from './_generated/server'
 import { internal } from './_generated/api'
 import { v } from 'convex/values'
@@ -51,6 +51,49 @@ export const getTopPlayerStatsWithTeams = query({
 })
 
 export const syncPlayerStatsAction = action({
+  args: { year: v.number() },
+  handler: async (ctx, args) => {
+    const url = `https://stats-api.sportsnet.ca/web_player_table?league=nba&season_year=${args.year}&season_type=reg`
+
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch player stats: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const apiPlayerStats: PlayerStatsApi[] = data.data?.player_stats?.players || []
+
+    const playerStats = apiPlayerStats.map((s) => ({
+      playerId: s.id,
+      firstName: s.first_name,
+      lastName: s.last_name,
+      fullName: s.display_name,
+      teamAbbreviation: s.team_alias,
+      position: s.position || '',
+      gamesPlayed: s.games_played || 0,
+      minutes: s.minutes_average || 0,
+      points: s.points_per_game || 0,
+      rebounds: s.rebounds_per_game || 0,
+      assists: s.assists_per_game || 0,
+      steals: s.steals_per_game || 0,
+      blocks: s.blocks_per_game || 0,
+      turnovers: s.turnovers_per_game || 0,
+      fieldGoalPct: Number.parseFloat(s.field_goals_pct || '0') / 100,
+      threePointPct: Number.parseFloat(s.three_point_goals_pct || '0') / 100,
+      freeThrowPct: Number.parseFloat(s.free_throw_pct || '0') / 100,
+    }))
+
+    await ctx.runMutation(internal.playerStats.syncPlayerStats, {
+      year: args.year,
+      playerStats,
+    })
+
+    return { count: playerStats.length }
+  },
+})
+
+export const syncPlayerStatsInternalAction = internalAction({
   args: { year: v.number() },
   handler: async (ctx, args) => {
     const url = `https://stats-api.sportsnet.ca/web_player_table?league=nba&season_year=${args.year}&season_type=reg`
