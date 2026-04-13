@@ -1,6 +1,16 @@
 {
-  "buildCommand": "vp build",
-  "framework": "vite",
-  "installCommand": "pnpm install",
-  "regions": ["iad1"]
+  "version": 2,
+  "builds": [
+    {
+      "src": "dist/server/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/dist/server/server.js"
+    }
+  ],
+  "outputDirectory": "dist/client"
 }
