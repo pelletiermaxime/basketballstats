@@ -15,7 +15,16 @@ export default function Header() {
           </Link>
         </h2>
 
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <Link
+            to="/mcp"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm text-[var(--ink)] no-underline hover:bg-[var(--paper-2)] transition-colors"
+          >
+            <span className="text-sm">🔌</span>
+            <span className="hidden sm:inline">MCP</span>
+          </Link>
+          <ThemeToggle />
+        </div>
       </nav>
     </header>
   )

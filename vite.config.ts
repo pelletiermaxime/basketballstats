@@ -37,7 +37,17 @@ const config = defineConfig({
       '.kilocode/**',
     ],
   },
-  plugins: [devtools(), tailwindcss(), tanstackStart(), nitro({ preset: 'vercel' }), viteReact()],
+  plugins: [
+    devtools(),
+    tailwindcss(),
+    tanstackStart(),
+    nitro({
+      preset: 'vercel',
+      scanDirs: ['server'],
+      serverDir: 'server',
+    }),
+    viteReact(),
+  ],
 })
 
 export default config

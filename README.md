@@ -61,6 +61,20 @@ Run tests:
 vp test run
 ```
 
+The default suite runs component tests without a backend. The MCP integration
+suite reads from the configured Convex deployment and requires the frontend
+server to be running:
+
+```bash
+# In one terminal (uses the existing Convex deployment from .env.local)
+vp dev --port 4412
+
+# In another terminal
+vp run test:integration
+```
+
+Set `MCP_URL` to test an MCP endpoint other than `http://localhost:4412/api/mcp`.
+
 ### Code Quality
 
 Run linting, formatting, and type checks:
