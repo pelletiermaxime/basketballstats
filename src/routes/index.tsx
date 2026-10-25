@@ -7,8 +7,8 @@ import { api } from '@convex/_generated/api'
 import PlayerStatsTable from '../components/PlayerStatsTable'
 import type { SortingState } from '@tanstack/react-table'
 
-const CURRENT_YEAR = 2025
-const YEAR_OPTIONS = [2025, 2024, 2023]
+const CURRENT_YEAR = 2026
+const YEAR_OPTIONS = [2026, 2025, 2024, 2023]
 
 const PLAYER_LIMIT = 100
 

@@ -10,7 +10,8 @@ import { nitro } from 'nitro/vite'
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
   server: {
-    port: Number(process.env.PORT) || 5173,
+    port: Number(process.env.PORT) || 4412,
+    strictPort: true,
     host: true,
   },
   staged: {

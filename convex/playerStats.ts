@@ -1,27 +1,8 @@
 import { query, action, internalAction, internalMutation } from './_generated/server'
-import type { QueryCtx } from './_generated/server'
+import type { ActionCtx, QueryCtx } from './_generated/server'
 import { internal } from './_generated/api'
 import { v } from 'convex/values'
-
-interface PlayerStatsApi {
-  id: string
-  first_name: string
-  last_name: string
-  display_name: string
-  team_alias: string
-  position: string
-  games_played: number
-  minutes_average: number
-  points_per_game: number
-  rebounds_per_game: number
-  assists_per_game: number
-  steals_per_game: number
-  blocks_per_game: number
-  turnovers_per_game: number
-  field_goals_pct: string
-  three_point_goals_pct: string
-  free_throw_pct: string
-}
+import { fetchSeasonPlayerStats, MAX_SEASON_PLAYERS } from './lib/nbaSeason'
 
 async function fetchPlayerStatsWithTeams(ctx: QueryCtx, year: number, limit?: number) {
   const statsQuery = ctx.db
@@ -50,95 +31,38 @@ export const getTopPlayerStatsWithTeams = query({
   },
 })
 
+interface SyncResult {
+  count: number
+  inserted: number
+  updated: number
+  unchanged: number
+  dryRun: boolean
+}
+
+async function syncSeason(ctx: ActionCtx, year: number, dryRun = false): Promise<SyncResult> {
+  const playerStats = await fetchSeasonPlayerStats(year)
+  const result = await ctx.runMutation(internal.playerStats.syncPlayerStats, {
+    year,
+    playerStats,
+    dryRun,
+  })
+  return { count: playerStats.length, ...result }
+}
+
 export const syncPlayerStatsAction = action({
   args: { year: v.number() },
-  handler: async (ctx, args) => {
-    const url = `https://stats-api.sportsnet.ca/web_player_table?league=nba&season_year=${args.year}&season_type=reg`
-
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch player stats: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    const apiPlayerStats: PlayerStatsApi[] = data.data?.player_stats?.players || []
-
-    const playerStats = apiPlayerStats.map((s) => ({
-      playerId: s.id,
-      firstName: s.first_name,
-      lastName: s.last_name,
-      fullName: s.display_name,
-      teamAbbreviation: s.team_alias,
-      position: s.position || '',
-      gamesPlayed: s.games_played || 0,
-      minutes: s.minutes_average || 0,
-      points: s.points_per_game || 0,
-      rebounds: s.rebounds_per_game || 0,
-      assists: s.assists_per_game || 0,
-      steals: s.steals_per_game || 0,
-      blocks: s.blocks_per_game || 0,
-      turnovers: s.turnovers_per_game || 0,
-      fieldGoalPct: Number.parseFloat(s.field_goals_pct || '0') / 100,
-      threePointPct: Number.parseFloat(s.three_point_goals_pct || '0') / 100,
-      freeThrowPct: Number.parseFloat(s.free_throw_pct || '0') / 100,
-    }))
-
-    await ctx.runMutation(internal.playerStats.syncPlayerStats, {
-      year: args.year,
-      playerStats,
-    })
-
-    return { count: playerStats.length }
-  },
+  handler: (ctx, args): Promise<SyncResult> => syncSeason(ctx, args.year),
 })
 
 export const syncPlayerStatsInternalAction = internalAction({
-  args: { year: v.number() },
-  handler: async (ctx, args) => {
-    const url = `https://stats-api.sportsnet.ca/web_player_table?league=nba&season_year=${args.year}&season_type=reg`
-
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch player stats: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    const apiPlayerStats: PlayerStatsApi[] = data.data?.player_stats?.players || []
-
-    const playerStats = apiPlayerStats.map((s) => ({
-      playerId: s.id,
-      firstName: s.first_name,
-      lastName: s.last_name,
-      fullName: s.display_name,
-      teamAbbreviation: s.team_alias,
-      position: s.position || '',
-      gamesPlayed: s.games_played || 0,
-      minutes: s.minutes_average || 0,
-      points: s.points_per_game || 0,
-      rebounds: s.rebounds_per_game || 0,
-      assists: s.assists_per_game || 0,
-      steals: s.steals_per_game || 0,
-      blocks: s.blocks_per_game || 0,
-      turnovers: s.turnovers_per_game || 0,
-      fieldGoalPct: Number.parseFloat(s.field_goals_pct || '0') / 100,
-      threePointPct: Number.parseFloat(s.three_point_goals_pct || '0') / 100,
-      freeThrowPct: Number.parseFloat(s.free_throw_pct || '0') / 100,
-    }))
-
-    await ctx.runMutation(internal.playerStats.syncPlayerStats, {
-      year: args.year,
-      playerStats,
-    })
-
-    return { count: playerStats.length }
-  },
+  args: { year: v.number(), dryRun: v.optional(v.boolean()) },
+  handler: (ctx, args): Promise<SyncResult> => syncSeason(ctx, args.year, args.dryRun),
 })
 
 export const syncPlayerStats = internalMutation({
   args: {
     year: v.number(),
+    dryRun: v.optional(v.boolean()),
     playerStats: v.array(
       v.object({
         playerId: v.string(),
@@ -162,57 +86,54 @@ export const syncPlayerStats = internalMutation({
     ),
   },
   handler: async (ctx, args) => {
-    const allTeams = await ctx.db.query('teams').collect()
-    const teamMapByAbbrev = new Map(allTeams.map((t) => [t.abbreviation, t._id]))
-
+    const allTeams = await ctx.db.query('teams').take(100)
+    const teamMapByAbbrev = new Map(allTeams.map((team) => [team.abbreviation, team._id]))
     const existingPlayerStats = await ctx.db
       .query('playerStats')
       .withIndex('year', (q) => q.eq('year', args.year))
-      .collect()
-    const existingMap = new Map(existingPlayerStats.map((s) => [s.playerId, s._id]))
-
+      .take(MAX_SEASON_PLAYERS + 1)
+    if (
+      existingPlayerStats.length > MAX_SEASON_PLAYERS ||
+      args.playerStats.length > MAX_SEASON_PLAYERS
+    ) {
+      throw new Error('Season exceeds the supported player limit')
+    }
+    const byPlayerId = new Map(existingPlayerStats.map((row) => [row.playerId, row]))
+    if (byPlayerId.size !== existingPlayerStats.length) {
+      throw new Error('Duplicate existing player ID')
+    }
+    const incomingIds = new Set<string>()
+    const plan = args.playerStats.map(({ teamAbbreviation, ...playerStat }) => {
+      if (incomingIds.has(playerStat.playerId)) throw new Error('Duplicate incoming player')
+      incomingIds.add(playerStat.playerId)
+      const teamId = teamMapByAbbrev.get(teamAbbreviation)
+      if (!teamId) throw new Error(`Unknown NBA team: ${teamAbbreviation}`)
+      const existing = byPlayerId.get(playerStat.playerId)
+      const data = { ...playerStat, team_id: teamId, year: args.year }
+      const changed =
+        !existing ||
+        Object.entries(data).some(
+          ([key, value]) => existing[key as keyof typeof existing] !== value,
+        )
+      return { existing, data, changed }
+    })
+    if (existingPlayerStats.some((row) => !incomingIds.has(row.playerId))) {
+      throw new Error('Source is missing existing players')
+    }
     let inserted = 0
     let updated = 0
-
-    for (const playerStat of args.playerStats) {
-      const teamId = teamMapByAbbrev.get(playerStat.teamAbbreviation)
-
-      if (!teamId) {
-        continue
-      }
-
-      const existingId = existingMap.get(playerStat.playerId)
-
-      const playerStatsData = {
-        playerId: playerStat.playerId,
-        firstName: playerStat.firstName,
-        lastName: playerStat.lastName,
-        fullName: playerStat.fullName,
-        team_id: teamId,
-        position: playerStat.position,
-        year: args.year,
-        gamesPlayed: playerStat.gamesPlayed,
-        minutes: playerStat.minutes,
-        points: playerStat.points,
-        rebounds: playerStat.rebounds,
-        assists: playerStat.assists,
-        steals: playerStat.steals,
-        blocks: playerStat.blocks,
-        turnovers: playerStat.turnovers,
-        fieldGoalPct: playerStat.fieldGoalPct,
-        threePointPct: playerStat.threePointPct,
-        freeThrowPct: playerStat.freeThrowPct,
-      }
-
-      if (existingId) {
-        await ctx.db.patch(existingId, playerStatsData)
+    let unchanged = 0
+    for (const { existing, data, changed } of plan) {
+      if (!changed) {
+        unchanged++
+      } else if (existing) {
+        if (!args.dryRun) await ctx.db.patch(existing._id, data)
         updated++
       } else {
-        await ctx.db.insert('playerStats', playerStatsData)
+        if (!args.dryRun) await ctx.db.insert('playerStats', data)
         inserted++
       }
     }
-
-    return { inserted, updated }
+    return { inserted, updated, unchanged, dryRun: args.dryRun ?? false }
   },
 })

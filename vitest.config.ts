@@ -3,6 +3,6 @@ import { defineConfig } from 'vite-plus'
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'convex/**/*.test.ts'],
   },
 })

@@ -1,126 +1,88 @@
 # Basketball Stats
 
-A modern basketball statistics tracking application built with TanStack Router, Vite Plus, and Convex.
+NBA player statistics by season, built with TanStack Start, React, and Convex.
+Browse the top 100 players, sort their per-game stats, or query the leaderboard
+through the MCP endpoint at `/api/mcp`.
 
-**Live Demo:** [https://basketballstats-neon.vercel.app](https://basketballstats-neon.vercel.app)
+[Live app](https://basketballstats-neon.vercel.app)
 
-## Features
+## Development
 
-- Player statistics tracking
-- Team analytics
-- Game-by-game data recording
-- Real-time updates via Convex
-- Dark/light theme support
-
-## Getting Started
-
-### Prerequisites
-
-- Vite+ (`vp`)
-- Node.js 24 (managed via Vite+, using `.nvmrc`)
-
-### Installation
-
-Install dependencies using Vite Plus:
+Requires [Vite+](https://viteplus.dev) (`vp`) and Node.js 24, pinned in `.nvmrc`.
 
 ```bash
 vp install
-```
-
-### Development
-
-Start the development server:
-
-```bash
+vp exec convex dev --once
 vp run dev
 ```
 
-This starts both the Vite frontend and the Convex development process. Portless
-prints the frontend URL and proxies it to port 4412. To start only the frontend
-against an already configured Convex deployment, use `vp run dev:vite`.
+On first setup, select the Convex project when prompted. The Convex CLI configures
+`CONVEX_DEPLOYMENT` and `VITE_CONVEX_URL` in `.env.local`.
 
-### Building
+The app runs at `http://localhost:4412`. `vp run dev` starts both Vite and Convex;
+use `vp run dev:vite` for the frontend alone. Set `PORT` to use another port.
 
-Build for production:
+## Commands
 
-```bash
-vp build
-```
+| Command       | Purpose                                  |
+| ------------- | ---------------------------------------- |
+| `vp check`    | Formatting, linting, and type checks     |
+| `vp test run` | Component and isolated Convex sync tests |
+| `vp build`    | Production build                         |
+| `vp preview`  | Preview the production build             |
 
-Preview the production build:
-
-```bash
-vp preview
-```
-
-### Testing
-
-Run tests:
+The MCP integration tests need a running frontend and a configured Convex backend:
 
 ```bash
-vp test run
-```
-
-The default suite runs component tests without a backend. The MCP integration
-suite reads from the configured Convex deployment and requires the frontend
-server to be running:
-
-```bash
-# In one terminal (uses the existing Convex deployment from .env.local)
-vp dev --port 4412
-
-# In another terminal
+vp run dev:vite
+# In another terminal:
 vp run test:integration
 ```
 
-Set `MCP_URL` to test an MCP endpoint other than `http://localhost:4412/api/mcp`.
+Set `MCP_URL` to test an endpoint other than `http://localhost:4412/api/mcp`.
 
-### Code Quality
+## Season sync
 
-Run linting, formatting, and type checks:
+Stats come from ESPN's regular-season feed, including players below qualification
+thresholds. Season years use the starting year: `2026` means 2026–27.
+The daily production job syncs that season at 08:00 UTC. Earlier seasons remain
+available in the selector.
 
-```bash
-vp check
-```
+The sync validates every page before writing, uses full-season totals for traded
+players, identifies players by ESPN ID, and skips unchanged records. All players
+are stored; the website displays the top 100.
 
-## Technologies
-
-- **Vite Plus** - Unified toolchain for development, building, and testing
-- **TanStack Router** - Type-safe routing with file-based routes
-- **TanStack Start** - Full-stack React framework
-- **Convex** - Real-time backend with reactive database
-- **Tailwind CSS** - Utility-first CSS framework
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env.local` file with:
-
-```env
-VITE_CONVEX_URL=your_convex_url
-CONVEX_DEPLOYMENT=your_convex_deployment
-```
-
-### Convex
-
-To start the Convex development server:
+Preview a production import without writing player data:
 
 ```bash
-vp run dev:convex
+vp exec convex run playerStats:syncPlayerStatsInternalAction '{"year":2026,"dryRun":true}' --prod
 ```
+
+Omit `dryRun` to apply it. The result reports fetched, inserted, updated, and
+unchanged player counts.
+
+To disable scheduled syncs on your configured development deployment:
+
+```bash
+vp exec convex env set DISABLE_NBA_STATS_CRON true
+vp exec convex dev --once
+```
+
+Cron definitions are evaluated on deployment, so redeploy after changing this
+flag. Leave it unset in production. Manual syncs remain available.
 
 ## Deployment
 
-This project is configured for Vercel deployment:
+Vercel automatically deploys the frontend when `main` is pushed. Configure
+`VITE_CONVEX_URL` in Vercel to point to the production Convex deployment.
+Deploy backend changes separately:
 
 ```bash
-# Deploy to production
-vp run deploy
+vp exec convex deploy
 ```
 
-The app will be built automatically on Vercel's infrastructure. Make sure to set up your environment variables (Convex URL, etc.) in the Vercel dashboard.
+For a manual frontend deployment, use `vp run deploy`.
 
 ## License
 
-MIT
+[MIT](LICENSE)

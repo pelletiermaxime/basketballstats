@@ -1,0 +1,133 @@
+{
+  "pagination": {
+    "count": 3,
+    "page": 1,
+    "pages": 1,
+    "limit": 100
+  },
+  "requestedSeason": {
+    "year": 2024,
+    "type": {
+      "type": 2
+    }
+  },
+  "categories": [
+    {
+      "name": "general",
+      "names": ["gamesPlayed", "avgMinutes", "rebounds"]
+    },
+    {
+      "name": "offensive",
+      "names": [
+        "points",
+        "fieldGoalsMade",
+        "fieldGoalsAttempted",
+        "threePointFieldGoalsMade",
+        "threePointFieldGoalsAttempted",
+        "freeThrowsMade",
+        "freeThrowsAttempted",
+        "assists",
+        "turnovers"
+      ]
+    },
+    {
+      "name": "defensive",
+      "names": ["steals", "blocks"]
+    }
+  ],
+  "athletes": [
+    {
+      "athlete": {
+        "id": "3945274",
+        "firstName": "Luka",
+        "lastName": "Doncic",
+        "displayName": "Luka Doncic",
+        "position": {
+          "abbreviation": "G"
+        },
+        "teams": [
+          {
+            "abbreviation": "DAL"
+          }
+        ]
+      },
+      "categories": [
+        {
+          "name": "general",
+          "values": [70.0, 37.485714, 647.0]
+        },
+        {
+          "name": "offensive",
+          "values": [2370.0, 804.0, 1652.0, 284.0, 744.0, 478.0, 608.0, 686.0, 282.0]
+        },
+        {
+          "name": "defensive",
+          "values": [99.0, 38.0]
+        }
+      ]
+    },
+    {
+      "athlete": {
+        "id": "4278049",
+        "firstName": "Daniel",
+        "lastName": "Gafford",
+        "displayName": "Daniel Gafford",
+        "position": {
+          "abbreviation": "F"
+        },
+        "teams": [
+          {
+            "abbreviation": "WSH"
+          },
+          {
+            "abbreviation": "DAL"
+          }
+        ]
+      },
+      "categories": [
+        {
+          "name": "general",
+          "values": [74.0, 24.513514, 562.0]
+        },
+        {
+          "name": "offensive",
+          "values": [814.0, 348.0, 480.0, 0.0, 0.0, 118.0, 175.0, 115.0, 74.0]
+        },
+        {
+          "name": "defensive",
+          "values": [65.0, 153.0]
+        }
+      ]
+    },
+    {
+      "athlete": {
+        "id": "6472",
+        "firstName": "Isaiah",
+        "lastName": "Thomas",
+        "displayName": "Isaiah Thomas",
+        "position": {
+          "abbreviation": "G"
+        },
+        "teams": [
+          {
+            "abbreviation": "PHX"
+          }
+        ]
+      },
+      "categories": [
+        {
+          "name": "general",
+          "values": [6.0, 3.1666667, 0.0]
+        },
+        {
+          "name": "offensive",
+          "values": [8.0, 3.0, 10.0, 2.0, 4.0, 0.0, 0.0, 3.0, 0.0]
+        },
+        {
+          "name": "defensive",
+          "values": [0.0, 0.0]
+        }
+      ]
+    }
+  ]
+}
