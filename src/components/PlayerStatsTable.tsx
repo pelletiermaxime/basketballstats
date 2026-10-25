@@ -1,8 +1,10 @@
 import { useMemo } from 'react'
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
+  useTable,
+  tableFeatures,
+  rowSortingFeature,
+  createSortedRowModel,
+  sortFns,
   flexRender,
   createColumnHelper,
   type SortingState,
@@ -43,7 +45,13 @@ interface PlayerStatsTableProps {
   onSortingChange: (sorting: SortingState) => void
 }
 
-const columnHelper = createColumnHelper<PlayerStat>()
+const features = tableFeatures({
+  rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+  sortFns,
+})
+
+const columnHelper = createColumnHelper<typeof features, PlayerStat>()
 
 const formatNumber = (value: number, decimals = 1) => {
   return Number.isInteger(value) ? value.toString() : value.toFixed(decimals)
@@ -62,89 +70,91 @@ export default function PlayerStatsTable({
   }
 
   const columns = useMemo(
-    () => [
-      columnHelper.accessor('fullName', {
-        header: 'Player',
-        cell: (info) => <span className="font-semibold">{info.getValue()}</span>,
-      }),
-      columnHelper.display({
-        id: 'team',
-        header: 'Team',
-        cell: (info) => {
-          const team = info.row.original.team
-          if (!team) return <span>-</span>
-          const isEast = team.conference === 'East'
-          return (
-            <span
-              className={isEast ? 'badge-east' : 'badge-west'}
-              title={`${team.city} ${team.name}`}
-            >
-              {team.abbreviation}
-            </span>
-          )
-        },
-      }),
-      columnHelper.accessor('position', {
-        header: 'Pos',
-        cell: (info) => <span className="text-xs text-[var(--ink-muted)]">{info.getValue()}</span>,
-      }),
-      columnHelper.accessor('gamesPlayed', {
-        header: 'GP',
-        cell: (info) => <span className="numeric">{info.getValue()}</span>,
-      }),
-      columnHelper.accessor('minutes', {
-        header: 'MIN',
-        cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
-      }),
-      columnHelper.accessor('points', {
-        header: 'PTS',
-        cell: (info) => (
-          <span className="numeric font-semibold">{formatNumber(info.getValue())}</span>
-        ),
-      }),
-      columnHelper.accessor('rebounds', {
-        header: 'REB',
-        cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
-      }),
-      columnHelper.accessor('assists', {
-        header: 'AST',
-        cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
-      }),
-      columnHelper.accessor('steals', {
-        header: 'STL',
-        cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
-      }),
-      columnHelper.accessor('blocks', {
-        header: 'BLK',
-        cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
-      }),
-      columnHelper.accessor('turnovers', {
-        header: 'TO',
-        cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
-      }),
-      columnHelper.accessor('fieldGoalPct', {
-        header: 'FG%',
-        cell: (info) => <span className="numeric">{formatPct(info.getValue())}</span>,
-      }),
-      columnHelper.accessor('threePointPct', {
-        header: '3P%',
-        cell: (info) => <span className="numeric">{formatPct(info.getValue())}</span>,
-      }),
-      columnHelper.accessor('freeThrowPct', {
-        header: 'FT%',
-        cell: (info) => <span className="numeric">{formatPct(info.getValue())}</span>,
-      }),
-    ],
+    () =>
+      columnHelper.columns([
+        columnHelper.accessor('fullName', {
+          header: 'Player',
+          cell: (info) => <span className="font-semibold">{info.getValue()}</span>,
+        }),
+        columnHelper.display({
+          id: 'team',
+          header: 'Team',
+          cell: (info) => {
+            const team = info.row.original.team
+            if (!team) return <span>-</span>
+            const isEast = team.conference === 'East'
+            return (
+              <span
+                className={isEast ? 'badge-east' : 'badge-west'}
+                title={`${team.city} ${team.name}`}
+              >
+                {team.abbreviation}
+              </span>
+            )
+          },
+        }),
+        columnHelper.accessor('position', {
+          header: 'Pos',
+          cell: (info) => (
+            <span className="text-xs text-[var(--ink-muted)]">{info.getValue()}</span>
+          ),
+        }),
+        columnHelper.accessor('gamesPlayed', {
+          header: 'GP',
+          cell: (info) => <span className="numeric">{info.getValue()}</span>,
+        }),
+        columnHelper.accessor('minutes', {
+          header: 'MIN',
+          cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
+        }),
+        columnHelper.accessor('points', {
+          header: 'PTS',
+          cell: (info) => (
+            <span className="numeric font-semibold">{formatNumber(info.getValue())}</span>
+          ),
+        }),
+        columnHelper.accessor('rebounds', {
+          header: 'REB',
+          cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
+        }),
+        columnHelper.accessor('assists', {
+          header: 'AST',
+          cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
+        }),
+        columnHelper.accessor('steals', {
+          header: 'STL',
+          cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
+        }),
+        columnHelper.accessor('blocks', {
+          header: 'BLK',
+          cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
+        }),
+        columnHelper.accessor('turnovers', {
+          header: 'TO',
+          cell: (info) => <span className="numeric">{formatNumber(info.getValue())}</span>,
+        }),
+        columnHelper.accessor('fieldGoalPct', {
+          header: 'FG%',
+          cell: (info) => <span className="numeric">{formatPct(info.getValue())}</span>,
+        }),
+        columnHelper.accessor('threePointPct', {
+          header: '3P%',
+          cell: (info) => <span className="numeric">{formatPct(info.getValue())}</span>,
+        }),
+        columnHelper.accessor('freeThrowPct', {
+          header: 'FT%',
+          cell: (info) => <span className="numeric">{formatPct(info.getValue())}</span>,
+        }),
+      ]),
     [],
   )
 
-  const table = useReactTable({
+  const table = useTable({
+    features,
     data: stats,
     columns,
     state: { sorting },
     onSortingChange: handleSortingChange,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
   })
 
   return (
@@ -194,7 +204,7 @@ export default function PlayerStatsTable({
         <tbody>
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id}>
-              {row.getVisibleCells().map((cell) => (
+              {row.getAllCells().map((cell) => (
                 <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
               ))}
             </tr>

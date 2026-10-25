@@ -16,8 +16,8 @@ A modern basketball statistics tracking application built with TanStack Router, 
 
 ### Prerequisites
 
-- Node.js (managed via Vite Plus)
-- pnpm
+- Vite+ (`vp`)
+- Node.js 24 (managed via Vite+, using `.nvmrc`)
 
 ### Installation
 
@@ -32,10 +32,12 @@ vp install
 Start the development server:
 
 ```bash
-vp dev
+vp run dev
 ```
 
-The app will be available at `http://localhost:3000`.
+This starts both the Vite frontend and the Convex development process. Portless
+prints the frontend URL and proxies it to port 4412. To start only the frontend
+against an already configured Convex deployment, use `vp run dev:vite`.
 
 ### Building
 
@@ -56,7 +58,7 @@ vp preview
 Run tests:
 
 ```bash
-vp test
+vp test run
 ```
 
 ### Code Quality
@@ -91,7 +93,7 @@ CONVEX_DEPLOYMENT=your_convex_deployment
 To start the Convex development server:
 
 ```bash
-vp dlx convex dev
+vp run dev:convex
 ```
 
 ## Deployment
@@ -100,10 +102,7 @@ This project is configured for Vercel deployment:
 
 ```bash
 # Deploy to production
-pnpm run deploy
-
-# Or use vercel CLI directly
-vercel --prod
+vp run deploy
 ```
 
 The app will be built automatically on Vercel's infrastructure. Make sure to set up your environment variables (Convex URL, etc.) in the Vercel dashboard.

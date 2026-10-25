@@ -9,23 +9,22 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: [22]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Vite+
-        uses: voidzero-dev/setup-vp@v1
+        uses: voidzero-dev/setup-vp@v1.21.1
         with:
-          node-version: ${{ matrix.node }}
+          node-version-file: .nvmrc
           cache: true
 
       - name: Install dependencies
-        run: vp install
+        run: vp install --frozen-lockfile
 
       - name: Check (lint + format + typecheck)
         run: vp check
 
       - name: Test
-        run: vp test --passWithNoTests
+        run: vp test run

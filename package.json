@@ -6,71 +6,49 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "concurrently --kill-others --names 'vite,convex' --prefix-colors 'cyan,yellow' 'pnpm run dev:vite' 'pnpm run dev:convex'",
-    "dev:vite": "portless basketballstats vp dev",
+    "dev": "concurrently --kill-others --names 'vite,convex' --prefix-colors 'cyan,yellow' 'vp run dev:vite' 'vp run dev:convex'",
+    "dev:vite": "portless --app-port 4412 basketballstats vp dev",
     "dev:convex": "convex dev",
     "build": "vp build",
     "preview": "vp preview",
     "test": "vp test run",
     "deploy": "vercel --prod",
-    "prepare": "vp config"
+    "prepare": "vp config --no-agent"
   },
   "dependencies": {
     "@convex-dev/react-query": "0.1.0",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-devtools": "latest",
-    "@tanstack/react-query": "^5.96.2",
+    "@tanstack/react-query": "^5.104.5",
     "@tanstack/react-router": "latest",
     "@tanstack/react-router-devtools": "latest",
     "@tanstack/react-router-ssr-query": "latest",
     "@tanstack/react-start": "latest",
-    "@tanstack/react-table": "^8.21.3",
-    "@tanstack/router-plugin": "^1.167.12",
-    "convex": "^1.34.1",
-    "lucide-react": "^0.577.0",
-    "nitro": "^3.0.260311-beta",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "tailwindcss": "^4.2.2"
+    "@tanstack/react-table": "^9.3.1",
+    "@tanstack/router-plugin": "^1.168.48",
+    "convex": "^1.48.0",
+    "lucide-react": "^1.61.0",
+    "nitro": "3.0.260903-beta",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/typography": "^0.5.20",
     "@tanstack/devtools-vite": "latest",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/react": "^16.3.2",
-    "@types/node": "^22.19.17",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.2.0",
-    "concurrently": "^9.2.1",
-    "jsdom": "^28.1.0",
-    "portless": "^0.9.6",
-    "typescript": "^5.9.3",
-    "vercel": "^41.4.1",
-    "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.15",
-    "vite-plus": "latest",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "npm:@voidzero-dev/vite-plus-test@^0.1.15"
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
+    "jsdom": "^30.1.3",
+    "portless": "^0.15.11",
+    "typescript": "^7.0.2",
+    "vercel": "^65.2.0",
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
+    "vite-plus": "1.4.0"
   },
-  "packageManager": "pnpm@10.33.0",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss"
-    ],
-    "overrides": {
-      "vite": "npm:@voidzero-dev/vite-plus-core@latest",
-      "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
-    },
-    "peerDependencyRules": {
-      "allowAny": [
-        "vite",
-        "vitest"
-      ],
-      "allowedVersions": {
-        "vite": "*",
-        "vitest": "*"
-      }
-    }
-  }
+  "packageManager": "pnpm@12.15.0"
 }
