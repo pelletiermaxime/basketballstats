@@ -1,16 +1,38 @@
 // @vitest-environment jsdom
 
-import { useState, type ComponentProps } from 'react'
+import { useState, type ComponentProps, type AnchorHTMLAttributes } from 'react'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vite-plus/test'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import type { SortingState } from '@tanstack/react-table'
 import PlayerStatsTable from './PlayerStatsTable'
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    params,
+    search,
+    ...props
+  }: AnchorHTMLAttributes<HTMLAnchorElement> & {
+    to: string
+    params?: { playerId: string }
+    search?: { players: string }
+  }) => (
+    <a
+      {...props}
+      href={
+        to.replace('$playerId', params?.playerId ?? '') +
+        (search ? `?players=${encodeURIComponent(search.players)}` : '')
+      }
+    />
+  ),
+}))
 
 type PlayerStat = ComponentProps<typeof PlayerStatsTable>['stats'][number]
 
 const baseStat: PlayerStat = {
   _id: '1',
   playerId: '1',
+  year: 2026,
   firstName: 'Alex',
   lastName: 'Adams',
   fullName: 'Alex Adams',
@@ -46,9 +68,17 @@ const stats: PlayerStat[] = [
   },
 ]
 
-function ControlledTable() {
+function ControlledTable({ page = 1, pageSize }: { page?: number; pageSize?: number }) {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'points', desc: true }])
-  return <PlayerStatsTable stats={stats} sorting={sorting} onSortingChange={setSorting} />
+  return (
+    <PlayerStatsTable
+      stats={stats}
+      sorting={sorting}
+      onSortingChange={setSorting}
+      page={page}
+      pageSize={pageSize}
+    />
+  )
 }
 
 function playerOrder() {
@@ -65,20 +95,37 @@ describe('PlayerStatsTable', () => {
     render(<ControlledTable />)
     expect(playerOrder()).toEqual(['Blake Brown', 'Alex Adams'])
 
-    fireEvent.click(screen.getByRole('columnheader', { name: 'PTS' }))
+    fireEvent.click(screen.getByRole('button', { name: 'PTS' }))
     expect(playerOrder()).toEqual(['Alex Adams', 'Blake Brown'])
 
-    fireEvent.click(screen.getByRole('columnheader', { name: 'PTS' }))
-    fireEvent.click(screen.getByRole('columnheader', { name: 'PTS' }))
+    fireEvent.click(screen.getByRole('button', { name: 'PTS' }))
     expect(playerOrder()).toEqual(['Blake Brown', 'Alex Adams'])
   })
 
   it('sorts player names alphabetically', () => {
     render(<ControlledTable />)
-    fireEvent.click(screen.getByRole('columnheader', { name: 'Player' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Player' }))
     expect(playerOrder()).toEqual(['Alex Adams', 'Blake Brown'])
-    fireEvent.click(screen.getByRole('columnheader', { name: 'Player' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Player' }))
     expect(playerOrder()).toEqual(['Blake Brown', 'Alex Adams'])
+  })
+
+  it('sorts the entire result set before slicing the requested page', () => {
+    render(<ControlledTable page={2} pageSize={1} />)
+    expect(playerOrder()).toEqual(['Alex Adams'])
+    fireEvent.click(screen.getByRole('button', { name: 'PTS' }))
+    expect(playerOrder()).toEqual(['Blake Brown'])
+    expect(screen.getByRole('columnheader', { name: 'PTS' }).getAttribute('aria-sort')).toBe(
+      'ascending',
+    )
+  })
+
+  it('links each player to their profile and selected comparison season', () => {
+    render(<ControlledTable />)
+    expect(screen.getByRole('link', { name: 'Alex Adams' }).getAttribute('href')).toBe('/players/1')
+    expect(screen.getByRole('link', { name: 'Compare Alex Adams' }).getAttribute('href')).toBe(
+      '/compare?players=1%3A2026',
+    )
   })
 
   it('preserves stat formatting and handles a player without a team', () => {
@@ -90,6 +137,8 @@ describe('PlayerStatsTable', () => {
     expect(cells[5]?.textContent).toBe('9.5')
     expect(cells[11]?.textContent).toBe('51.2%')
     expect(cells[13]?.textContent).toBe('87.5%')
-    expect(screen.getByTitle('Boston Celtics').textContent).toBe('BOS')
+    expect(screen.getByRole('img', { name: 'Boston Celtics' }).getAttribute('src')).toBe(
+      '/team-logos/bos.svg',
+    )
   })
 })

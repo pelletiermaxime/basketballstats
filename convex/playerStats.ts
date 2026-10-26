@@ -1,33 +1,89 @@
 import { query, action, internalAction, internalMutation } from './_generated/server'
 import type { ActionCtx, QueryCtx } from './_generated/server'
+import type { Doc } from './_generated/dataModel'
 import { internal } from './_generated/api'
 import { v } from 'convex/values'
 import { fetchSeasonPlayerStats, MAX_SEASON_PLAYERS } from './lib/nbaSeason'
 
-async function fetchPlayerStatsWithTeams(ctx: QueryCtx, year: number, limit?: number) {
+function validateYear(year: number) {
+  if (!Number.isInteger(year) || year < 1946 || year > 2100) {
+    throw new Error('Invalid NBA season year')
+  }
+}
+
+async function attachTeams(ctx: QueryCtx, playerStats: Doc<'playerStats'>[]) {
+  const teams = await ctx.db.query('teams').take(100)
+  const teamMap = new Map(teams.map((team) => [team._id, team]))
+  return playerStats.map((stat) => ({ ...stat, team: teamMap.get(stat.team_id) }))
+}
+
+async function fetchPlayerStatsWithTeams(ctx: QueryCtx, year: number, limit: number) {
+  validateYear(year)
   const statsQuery = ctx.db
     .query('playerStats')
     .withIndex('year_points', (q) => q.eq('year', year))
     .order('desc')
 
-  const playerStats = limit ? await statsQuery.take(limit) : await statsQuery.collect()
-
-  const teams = await ctx.db.query('teams').collect()
-  const teamMap = new Map(teams.map((t) => [t._id.toString(), t]))
-
-  return playerStats.map((stat) => {
-    const team = teamMap.get(stat.team_id.toString())
-    return {
-      ...stat,
-      team,
-    }
-  })
+  const playerStats = await statsQuery.take(limit)
+  if (playerStats.length > MAX_SEASON_PLAYERS) throw new Error('Season exceeds player limit')
+  return attachTeams(ctx, playerStats)
 }
 
 export const getTopPlayerStatsWithTeams = query({
   args: { year: v.number(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    return fetchPlayerStatsWithTeams(ctx, args.year, args.limit ?? 100)
+    const limit = args.limit ?? 100
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+      throw new Error('Player limit must be between 1 and 100')
+    }
+    return fetchPlayerStatsWithTeams(ctx, args.year, limit)
+  },
+})
+
+// A season is fetched once and cached by the client. Search, filters, sorting,
+// and pagination then reuse it without subscribing for each filter combination.
+export const getSeasonPlayerStatsWithTeams = query({
+  args: { year: v.number() },
+  handler: (ctx, args) => fetchPlayerStatsWithTeams(ctx, args.year, MAX_SEASON_PLAYERS + 1),
+})
+
+export const getPlayerHistoryWithTeams = query({
+  args: { playerId: v.string() },
+  handler: async (ctx, args) => {
+    const history = await ctx.db
+      .query('playerStats')
+      .withIndex('playerId', (q) => q.eq('playerId', args.playerId))
+      .take(101)
+    if (history.length > 100) throw new Error('Player history exceeds supported seasons')
+    return attachTeams(
+      ctx,
+      history.sort((a, b) => a.year - b.year),
+    )
+  },
+})
+
+export const getPlayerComparisons = query({
+  args: { selections: v.array(v.object({ playerId: v.string(), year: v.number() })) },
+  handler: async (ctx, args) => {
+    if (args.selections.length > 4) throw new Error('Compare up to four player seasons')
+    const keys = new Set<string>()
+    for (const { playerId, year } of args.selections) {
+      validateYear(year)
+      const key = `${playerId}:${year}`
+      if (keys.has(key)) throw new Error('Duplicate player season')
+      keys.add(key)
+    }
+    return Promise.all(
+      args.selections.map(async ({ playerId, year }) => {
+        const stat = await ctx.db
+          .query('playerStats')
+          .withIndex('year_playerId', (q) => q.eq('year', year).eq('playerId', playerId))
+          .unique()
+        if (!stat) return null
+        const team = await ctx.db.get(stat.team_id)
+        return { ...stat, team: team ?? undefined }
+      }),
+    )
   },
 })
 

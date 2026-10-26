@@ -1,4 +1,8 @@
 import { useMemo } from 'react'
+import { Link } from '@tanstack/react-router'
+import type { PlayerStat } from '../lib/basketball'
+import { selectionKey } from '../lib/comparison'
+import TeamLogo from './TeamLogo'
 import {
   useTable,
   tableFeatures,
@@ -10,39 +14,12 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 
-interface Team {
-  _id: string
-  name: string
-  city: string
-  abbreviation: string
-  conference: string
-}
-
-interface PlayerStat {
-  _id: string
-  playerId: string
-  firstName: string
-  lastName: string
-  fullName: string
-  position: string
-  gamesPlayed: number
-  minutes: number
-  points: number
-  rebounds: number
-  assists: number
-  steals: number
-  blocks: number
-  turnovers: number
-  fieldGoalPct: number
-  threePointPct: number
-  freeThrowPct: number
-  team?: Team
-}
-
 interface PlayerStatsTableProps {
   stats: PlayerStat[]
   sorting: SortingState
   onSortingChange: (sorting: SortingState) => void
+  page?: number
+  pageSize?: number
 }
 
 const features = tableFeatures({
@@ -63,6 +40,8 @@ export default function PlayerStatsTable({
   stats,
   sorting,
   onSortingChange,
+  page = 1,
+  pageSize = stats.length || 25,
 }: PlayerStatsTableProps) {
   const handleSortingChange = (updater: SortingState | ((old: SortingState) => SortingState)) => {
     const newSorting = typeof updater === 'function' ? updater(sorting) : updater
@@ -74,24 +53,20 @@ export default function PlayerStatsTable({
       columnHelper.columns([
         columnHelper.accessor('fullName', {
           header: 'Player',
-          cell: (info) => <span className="font-semibold">{info.getValue()}</span>,
+          cell: (info) => (
+            <Link
+              to="/players/$playerId"
+              params={{ playerId: info.row.original.playerId }}
+              className="font-semibold text-[var(--hoops-orange-deep)] underline-offset-4 hover:underline"
+            >
+              {info.getValue()}
+            </Link>
+          ),
         }),
         columnHelper.display({
           id: 'team',
           header: 'Team',
-          cell: (info) => {
-            const team = info.row.original.team
-            if (!team) return <span>-</span>
-            const isEast = team.conference === 'East'
-            return (
-              <span
-                className={isEast ? 'badge-east' : 'badge-west'}
-                title={`${team.city} ${team.name}`}
-              >
-                {team.abbreviation}
-              </span>
-            )
-          },
+          cell: (info) => <TeamLogo team={info.row.original.team} />,
         }),
         columnHelper.accessor('position', {
           header: 'Pos',
@@ -145,6 +120,20 @@ export default function PlayerStatsTable({
           header: 'FT%',
           cell: (info) => <span className="numeric">{formatPct(info.getValue())}</span>,
         }),
+        columnHelper.display({
+          id: 'compare',
+          header: 'Compare',
+          cell: (info) => (
+            <Link
+              to="/compare"
+              search={{ players: selectionKey(info.row.original) }}
+              aria-label={`Compare ${info.row.original.fullName}`}
+              className="text-xs font-semibold text-[var(--hoops-orange-deep)] underline-offset-4 hover:underline"
+            >
+              Compare
+            </Link>
+          ),
+        }),
       ]),
     [],
   )
@@ -155,60 +144,81 @@ export default function PlayerStatsTable({
     columns,
     state: { sorting },
     onSortingChange: handleSortingChange,
+    enableSortingRemoval: false,
   })
 
   return (
     <div className="table-container">
       <table className="data-table">
+        <caption className="sr-only">
+          Per-game player statistics; games played is a season total.
+        </caption>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
+                  aria-sort={
+                    header.column.getIsSorted() === 'asc'
+                      ? 'ascending'
+                      : header.column.getIsSorted() === 'desc'
+                        ? 'descending'
+                        : undefined
+                  }
                   className={header.column.getIsSorted() ? 'text-[var(--hoops-orange-deep)]' : ''}
                 >
-                  <div className="flex items-center gap-1">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getIsSorted() === 'asc' && (
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="m18 15-6-6-6 6" />
-                      </svg>
-                    )}
-                    {header.column.getIsSorted() === 'desc' && (
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
-                    )}
-                  </div>
+                  {header.column.getCanSort() ? (
+                    <button
+                      type="button"
+                      onClick={header.column.getToggleSortingHandler()}
+                      className="flex w-full items-center gap-1 text-left"
+                    >
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.column.getIsSorted() === 'asc' && (
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="m18 15-6-6-6 6" />
+                        </svg>
+                      )}
+                      {header.column.getIsSorted() === 'desc' && (
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      )}
+                    </button>
+                  ) : (
+                    flexRender(header.column.columnDef.header, header.getContext())
+                  )}
                 </th>
               ))}
             </tr>
           ))}
         </thead>
         <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
-              {row.getAllCells().map((cell) => (
-                <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-              ))}
-            </tr>
-          ))}
+          {table
+            .getRowModel()
+            .rows.slice((page - 1) * pageSize, page * pageSize)
+            .map((row) => (
+              <tr key={row.id}>
+                {row.getAllCells().map((cell) => (
+                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                ))}
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>

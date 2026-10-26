@@ -1,8 +1,9 @@
 # Basketball Stats
 
 NBA player statistics by season, built with TanStack Start, React, and Convex.
-Browse the top 100 players, sort their per-game stats, or query the leaderboard
-through the MCP endpoint at `/api/mcp`.
+Search and filter every player in a season, compare two to four player seasons,
+and explore individual season histories with charts. The leaderboard is also
+available through the MCP endpoint at `/api/mcp`.
 
 [Live app](https://basketballstats-neon.vercel.app)
 
@@ -24,12 +25,12 @@ use `vp run dev:vite` for the frontend alone. Set `PORT` to use another port.
 
 ## Commands
 
-| Command       | Purpose                                  |
-| ------------- | ---------------------------------------- |
-| `vp check`    | Formatting, linting, and type checks     |
-| `vp test run` | Component and isolated Convex sync tests |
-| `vp build`    | Production build                         |
-| `vp preview`  | Preview the production build             |
+| Command       | Purpose                              |
+| ------------- | ------------------------------------ |
+| `vp check`    | Formatting, linting, and type checks |
+| `vp test run` | Component and isolated Convex tests  |
+| `vp build`    | Production build                     |
+| `vp preview`  | Preview the production build         |
 
 The MCP integration tests need a running frontend and a configured Convex backend:
 
@@ -50,7 +51,7 @@ available in the selector.
 
 The sync validates every page before writing, uses full-season totals for traded
 players, identifies players by ESPN ID, and skips unchanged records. All players
-are stored; the website displays the top 100.
+are available through the paginated leaderboard. The MCP tool returns up to 100.
 
 Preview a production import without writing player data:
 

@@ -8,8 +8,6 @@
 :root {
   --hoops-orange: #f97316;
   --hoops-orange-deep: #ea580c;
-  --east-blue: #1e40af;
-  --west-red: #991b1b;
   --ink: #1c1917;
   --ink-soft: #78716c;
   --ink-muted: #a8a29e;
@@ -25,8 +23,6 @@ html.dark,
 [data-theme='dark'] {
   --hoops-orange: #fb923c;
   --hoops-orange-deep: #f97316;
-  --east-blue: #60a5fa;
-  --west-red: #f87171;
   --ink: #fafaf9;
   --ink-soft: #a8a29e;
   --ink-muted: #78716c;
@@ -104,6 +100,16 @@ body {
   background: var(--hoops-orange-deep);
 }
 
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+:where(a, button, input, select):focus-visible {
+  outline: 2px solid var(--hoops-orange-deep);
+  outline-offset: 3px;
+}
+
 .select {
   appearance: none;
   background: var(--surface-strong);
@@ -159,34 +165,6 @@ body {
 .data-table .numeric {
   font-variant-numeric: tabular-nums;
   text-align: right;
-}
-
-.badge-east {
-  display: inline-flex;
-  padding: 0.25rem 0.5rem;
-  background: rgba(30, 64, 175, 0.1);
-  color: var(--east-blue);
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.badge-west {
-  display: inline-flex;
-  padding: 0.25rem 0.5rem;
-  background: rgba(153, 27, 27, 0.1);
-  color: var(--west-red);
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-html.dark .badge-east {
-  background: rgba(96, 165, 250, 0.15);
-}
-
-html.dark .badge-west {
-  background: rgba(248, 113, 113, 0.15);
 }
 
 .rise-in {
