@@ -46,8 +46,10 @@ Set `MCP_URL` to test an endpoint other than `http://localhost:4412/api/mcp`.
 
 Stats come from ESPN's regular-season feed, including players below qualification
 thresholds. Season years use the starting year: `2026` means 2026–27.
-The daily production job syncs that season at 08:00 UTC. Earlier seasons remain
-available in the selector.
+Production syncs that season at 04:00, 06:00, 10:00, and 14:00 UTC, approximately
+midnight, 02:00, 06:00, and 10:00 in Toronto (one hour earlier in winter).
+The overnight runs pick up finished games, and the morning runs catch delayed
+source updates. Earlier seasons remain available in the selector.
 
 The sync validates every page before writing, uses full-season totals for traded
 players, identifies players by ESPN ID, and skips unchanged records. All players
