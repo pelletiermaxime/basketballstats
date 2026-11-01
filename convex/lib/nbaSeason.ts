@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const MAX_SEASON_PLAYERS = 2000
 const PAGE_SIZE = 100
+const MAX_FETCH_ATTEMPTS = 3
 const ENDPOINT =
   'https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/statistics/byathlete'
 
@@ -122,9 +123,9 @@ export function decodeSeasonPage(raw: unknown, year: number, page: number) {
   return { pagination: data.pagination, players }
 }
 
-export async function fetchSeasonPlayerStats(year: number, request: typeof fetch = fetch) {
-  if (!Number.isInteger(year) || year < 1946 || year > 2100)
-    throw new Error('Invalid NBA season year')
+class InconsistentSeasonError extends Error {}
+
+async function fetchSeasonAttempt(year: number, request: typeof fetch) {
   const players = new Map<string, SeasonPlayerStat>()
   let expectedCount: number | undefined
   let expectedPages = 1
@@ -146,20 +147,38 @@ export async function fetchSeasonPlayerStats(year: number, request: typeof fetch
       expectedCount !== undefined &&
       (expectedCount !== decoded.pagination.count || expectedPages !== decoded.pagination.pages)
     ) {
-      throw new Error('ESPN pagination changed during sync; retry the complete season')
+      throw new InconsistentSeasonError('ESPN pagination changed during sync')
     }
     expectedCount = decoded.pagination.count
     expectedPages = decoded.pagination.pages
-    if (decoded.players.length === 0) throw new Error(`Empty ESPN page ${page}`)
+    if (decoded.players.length === 0) throw new InconsistentSeasonError(`Empty ESPN page ${page}`)
     for (const player of decoded.players) {
-      if (players.has(player.playerId)) throw new Error(`Duplicate ESPN player ${player.playerId}`)
+      if (players.has(player.playerId))
+        throw new InconsistentSeasonError(`Duplicate ESPN player ${player.playerId}`)
       players.set(player.playerId, player)
     }
   }
   if (players.size !== expectedCount) {
-    throw new Error(
+    throw new InconsistentSeasonError(
       `Incomplete ESPN season: expected ${expectedCount} players, received ${players.size}`,
     )
   }
   return [...players.values()]
+}
+
+export async function fetchSeasonPlayerStats(year: number, request: typeof fetch = fetch) {
+  if (!Number.isInteger(year) || year < 1946 || year > 2100)
+    throw new Error('Invalid NBA season year')
+  for (let attempt = 1; ; attempt++) {
+    try {
+      // Each attempt starts with an empty map; never combine different snapshots.
+      return await fetchSeasonAttempt(year, request)
+    } catch (error) {
+      if (!(error instanceof InconsistentSeasonError) || attempt >= MAX_FETCH_ATTEMPTS) {
+        throw error
+      }
+      console.warn(`ESPN season fetch attempt ${attempt} failed; retrying: ${error.message}`)
+      await new Promise((resolve) => setTimeout(resolve, attempt * 1000))
+    }
+  }
 }
