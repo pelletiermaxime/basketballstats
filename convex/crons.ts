@@ -7,8 +7,8 @@ const crons = cronJobs()
 if (process.env.DISABLE_NBA_STATS_CRON !== 'true') {
   crons.cron(
     'sync NBA player stats',
-    // Approximately midnight, 02:00, 06:00, and 10:00 in Toronto.
-    '0 4,6,10,14 * * *',
+    // Toronto: 00:00, 02:00, 06:00, 10:00, 12:00 in summer; one hour earlier in winter.
+    '0 4,6,10,14,16 * * *',
     internal.playerStats.syncPlayerStatsInternalAction,
     { year: 2026 },
   )
