@@ -2,6 +2,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { convexQuery } from '@convex-dev/react-query'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { api } from '@convex/_generated/api'
+import PlayerGameHistory from '../components/PlayerGameHistory'
 import PlayerHistory from '../components/PlayerHistory'
 import TeamLogo from '../components/TeamLogo'
 import { formatStat, seasonLabel } from '../lib/basketball'
@@ -9,7 +10,7 @@ import { formatStat, seasonLabel } from '../lib/basketball'
 export const Route = createFileRoute('/players/$playerId')({
   component: PlayerProfile,
   head: ({ params }) => ({
-    meta: [{ title: `Player ${params.playerId} season history | Basketball Stats` }],
+    meta: [{ title: `Player ${params.playerId} history | Basketball Stats` }],
   }),
 })
 
@@ -69,6 +70,7 @@ function PlayerProfile() {
               ))}
             </div>
           </section>
+          <PlayerGameHistory key={playerId} seasons={seasons} />
           <PlayerHistory seasons={seasons} />
         </>
       )}

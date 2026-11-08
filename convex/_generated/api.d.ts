@@ -9,7 +9,9 @@
  */
 
 import type * as crons from "../crons.js";
+import type * as lib_nbaGameLog from "../lib/nbaGameLog.js";
 import type * as lib_nbaSeason from "../lib/nbaSeason.js";
+import type * as playerGameLogs from "../playerGameLogs.js";
 import type * as playerStats from "../playerStats.js";
 import type * as seed from "../seed.js";
 
@@ -21,7 +23,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   crons: typeof crons;
+  "lib/nbaGameLog": typeof lib_nbaGameLog;
   "lib/nbaSeason": typeof lib_nbaSeason;
+  playerGameLogs: typeof playerGameLogs;
   playerStats: typeof playerStats;
   seed: typeof seed;
 }>;
